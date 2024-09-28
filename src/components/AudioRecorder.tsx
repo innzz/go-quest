@@ -1,88 +1,130 @@
-import React, { useState, useRef, useEffect } from "react";
-import WaveSurfer from "wavesurfer.js";
+import React, { useRef, useState, useEffect } from 'react';
+import WaveSurfer from 'wavesurfer.js';
 
 const AudioRecorder: React.FC = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const [audioURL, setAudioURL] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const waveSurferRef = useRef<WaveSurfer | null>(null);
-  const waveformContainerRef = useRef<HTMLDivElement | null>(null);
+  const audioChunks: Blob[] = [];
+  const [recordingDuration, setRecordingDuration] = useState<number>(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null); // Reference to the media stream
+  const waveSurferRef = useRef<WaveSurfer | null>(null); // Reference to WaveSurfer instance
 
-  // Initialize WaveSurfer when the component mounts
+  // Create a Wavesurfer instance when audioURL is set
   useEffect(() => {
-    if (waveformContainerRef.current) {
+    if (audioURL) {
+      // Initialize Wavesurfer
       waveSurferRef.current = WaveSurfer.create({
-        container: waveformContainerRef.current,
-        waveColor: "violet",
-        progressColor: "purple",
-        cursorColor: "navy",
-        height: 100,
-        barWidth: 2,
+        container: '#waveform', // The container where waveform will be rendered
+        waveColor: '#00B4D8',
+        progressColor: '#0077B6',
+        height: 100
       });
+
+      // Load the audio URL into Wavesurfer
+      waveSurferRef.current.load(audioURL);
+
+      // Cleanup when the component unmounts
+      return () => {
+        waveSurferRef.current?.destroy();
+      };
     }
+  }, [audioURL]);
 
-    return () => {
-      // Clean up the waveform instance on unmount
-      waveSurferRef.current?.destroy();
+  const handleStartRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaStreamRef.current = stream; // Store the media stream reference
+    mediaRecorderRef.current = new MediaRecorder(stream);
+
+    mediaRecorderRef.current.ondataavailable = (event) => {
+      audioChunks.push(event.data);
     };
-  }, []);
 
-  const startRecording = (): void => {
-    audioContextRef.current = new AudioContext();
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      mediaRecorderRef.current.ondataavailable = (event: BlobEvent) => {
-        audioChunksRef.current.push(event.data);
-      };
-      mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-        setAudioBlob(blob);
+    mediaRecorderRef.current.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      const url = URL.createObjectURL(audioBlob);
+      setAudioURL(url);
+      audioChunks.length = 0; // Clear the chunks for the next recording
+    };
 
-        // Load the recorded audio into WaveSurfer for visualization
-        if (waveSurferRef.current) {
-          const audioURL = URL.createObjectURL(blob);
-          waveSurferRef.current.load(audioURL);
-        }
+    mediaRecorderRef.current.start();
+    setIsRecording(true);
+    setRecordingDuration(0);
 
-        // Clear the audio chunks for the next recording
-        audioChunksRef.current = [];
-      };
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-    });
+    timerRef.current = setInterval(() => {
+      setRecordingDuration((prev) => prev + 1);
+    }, 1000);
   };
 
-  const stopRecording = (): void => {
+  const handleStopRecording = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      if (mediaStreamRef.current) {
+        // Stop all tracks of the media stream
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
     }
   };
 
-  const playRecording = (): void => {
-    if (audioBlob) {
-      const audioURL = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioURL);
-      audio.play();
+  const handlePlayAudio = () => {
+    if (waveSurferRef.current) {
+      waveSurferRef.current.playPause(); // Play or pause the audio using WaveSurfer
+    }
+  };
+
+  const handleResetRecording = () => {
+    setAudioURL(null); // Clear the audio URL
+    setRecordingDuration(0); // Reset the recording duration
+    if (mediaStreamRef.current) {
+      // Stop all tracks of the media stream
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    if (waveSurferRef.current) {
+      waveSurferRef.current.destroy(); // Destroy WaveSurfer instance
+      waveSurferRef.current = null; // Reset the Wavesurfer reference
     }
   };
 
   return (
-    <div>
-      <button onClick={startRecording} disabled={isRecording}>
-        Start Recording
-      </button>
-      <button onClick={stopRecording} disabled={!isRecording}>
-        Stop Recording
-      </button>
-      <button onClick={playRecording} disabled={!audioBlob}>
-        Play Recording
-      </button>
-
-      {/* Waveform visualization */}
-      <div ref={waveformContainerRef} className="waveform mt-4"></div>
+    <div className="w-full mx-auto mt-6 p-4 border border-gray-300 rounded-lg shadow-md">
+      <h2 className="text-xl font-semibold text-center mb-4">Audio Recorder</h2>
+      <div id="waveform" className="mb-4"></div> {/* Waveform container */}
+      <div className="flex flex-col items-center">
+        <button
+          onClick={isRecording ? handleStopRecording : handleStartRecording}
+          className={`py-3 px-6 rounded-lg text-white transition duration-300 ${
+            isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+          }`}
+        >
+          {isRecording ? 'Stop Recording' : 'Start Recording'}
+        </button>
+        {isRecording && (
+          <div className="mt-4">
+            <p className="text-sm text-red-500">Recording: {recordingDuration}s</p>
+          </div>
+        )}
+        {audioURL && (
+          <div className="mt-4">
+            <button
+              onClick={handlePlayAudio}
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300"
+            >
+              Play/Pause Recording
+            </button>
+            <button
+              onClick={handleResetRecording}
+              className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-300 ml-4"
+            >
+              Reset Recording
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

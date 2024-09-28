@@ -18,18 +18,20 @@ const Navigation: React.FC = () => {
   };
 
   return (
-    <div className="mt-4 flex justify-between">
+    <div className="mt-6 flex justify-between">
       <button
-        className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-300"
+        className={`bg-blue-500 text-white px-4 py-2 rounded-lg shadow transition duration-200 
+      hover:bg-blue-600 disabled:bg-gray-300 disabled:text-gray-500`}
         onClick={handlePrevious}
         disabled={currentDialogue === 0}
       >
         Previous
       </button>
       <button
-        className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-300"
+        className={`bg-blue-500 text-white px-4 py-2 rounded-lg shadow transition duration-200 
+      hover:bg-blue-600 disabled:bg-gray-300 disabled:text-gray-500`}
         onClick={handleNext}
-        disabled={currentDialogue === 2}
+        disabled={currentDialogue === 2} // Updated to use dialogues length
       >
         Next
       </button>

@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
 import { GlobalContext } from "../providers/GlobalProvider";
+import Navigation from "./Navigation";
 
 interface Dialogue {
   originalText: string;
@@ -68,26 +69,36 @@ const DialogueDisplay: React.FC = () => {
   };
 
   return (
-    <div className="mt-4">
-      <h2 className="font-semibold">Dialogue {currentDialogue + 1}</h2>
+    <div className="w-full mx-auto mt-6 p-4 border border-gray-300 rounded-lg shadow-md bg-white">
+      <h2 className="text-xl font-semibold text-center mb-4">
+        Dialogue {currentDialogue + 1}
+      </h2>
 
-      <div className="mt-2">
-        <label className="block font-medium">Original Text</label>
+      <div className="mb-4">
+        <label className="block font-medium mb-1 text-gray-700">
+          Original Text
+        </label>
         <textarea
-          className="w-full border rounded p-2"
+          className="w-full h-24 border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           value={dialogueData[currentDialogue].originalText}
           onChange={handleOriginalTextChange}
+          placeholder="Type original text here..."
         />
       </div>
 
-      <div className="mt-2">
-        <label className="block font-medium">Translated Text</label>
+      <div>
+        <label className="block font-medium mb-1 text-gray-700">
+          Translated Text
+        </label>
         <textarea
-          className="w-full border rounded p-2"
+          className="w-full h-24 border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           value={dialogueData[currentDialogue].translatedText}
           onChange={handleTranslatedTextChange}
+          placeholder="Translation will appear here..."
         />
       </div>
+
+      <Navigation />
     </div>
   );
 };
