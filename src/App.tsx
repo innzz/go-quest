@@ -13,9 +13,9 @@ function App() {
           Dubbing Interface
         </h1>
         <VideoPlayer />
-        <AudioRecorder />
         <DialogueDisplay />
         <Navigation />
+        <AudioRecorder />
       </div>
     </GlobalProvider>
   );
