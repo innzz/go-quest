@@ -1,6 +1,12 @@
 import { useContext } from "react";
 import { GlobalContext } from "../providers/GlobalProvider";
 
+
+/**
+ * Functional component representing the navigation bar.
+ * Utilizes the GlobalContext to handle user logout.
+ * Renders a title and a logout button.
+ */
 const Navbar = () => {
   const { handleLogout } = useContext(GlobalContext)!;
   return (

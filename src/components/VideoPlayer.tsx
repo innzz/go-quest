@@ -1,7 +1,9 @@
-// "https://cdn.pixabay.com/video/2024/06/10/216058_large.mp4"
-
 import React, { useRef, useState } from "react";
 
+/**
+ * Functional component for a video player.
+ * Manages video playback, seeking, and progress tracking.
+ */
 const VideoPlayer: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);

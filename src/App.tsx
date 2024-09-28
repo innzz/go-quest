@@ -6,6 +6,10 @@ import Navbar from "./components/Navbar";
 import VideoPlayer from "./components/VideoPlayer";
 import { GlobalProvider } from "./providers/GlobalProvider";
 
+/**
+ * Renders the main application component with global provider, authentication component,
+ * navbar, video player, dialogue display, and audio recorder.
+ */
 function App() {
   return (
     <GlobalProvider>
