@@ -1,19 +1,25 @@
 import React, { ReactNode, useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../providers/GlobalProvider";
 
+// Define the props for the AuthComponent, expecting children as ReactNode
 interface AuthComponentProps {
   children: ReactNode;
 }
 
+// Create the AuthComponent as a functional component
 export const AuthComponent: React.FC<AuthComponentProps> = ({ children }) => {
+  // State variables for username and password
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+
+  // Extract authentication-related functions and state from GlobalContext
   const { setIsAuthenticated, isAuthenticated, handleLogin, errorMessage } =
     useContext(GlobalContext)!;
 
   // Load authentication status from local storage
   useEffect(() => {
     const sessionData = localStorage.getItem("isAuthenticated");
+    // If user is authenticated in local storage, update the context state
     if (sessionData === "true") {
       setIsAuthenticated(true);
     }
@@ -22,8 +28,10 @@ export const AuthComponent: React.FC<AuthComponentProps> = ({ children }) => {
   return (
     <>
       {isAuthenticated ? (
+        // If authenticated, render the children components
         <>{children}</>
       ) : (
+        // If not authenticated, show the login form
         <div className="max-w-md mx-auto mt-6 p-6 border rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold mb-4">
             Login to Dubbing Interface
