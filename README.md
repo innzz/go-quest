@@ -3,6 +3,7 @@
 
 - React.js
 - Tailwind CSS
+- Typescript
 - Vite
 - Wavesurfer.js
 
